@@ -113,5 +113,12 @@ flat-api app for testing technical solutions for see.
 
 ### [PAYING THE WINNER]
 ---
-+ What do you need to make a payment to the winner?
-+ What information do we need from the users?
+##### Venmo API
++ Can we call Venmo API from cloud code?
+	+ make a SEE account on Venmo
+	+ get its access token
+	+ embed it in the cloudCode function that announces winner.
+	+ in the same cloudCode function, make a call to Venmo API for payment to the user.
++ What information do we need from users?
+	+ phone number: if we can pay through venmo to the user's phone number, they will get a text message.
+	+ email: not sure if we actually need this.
