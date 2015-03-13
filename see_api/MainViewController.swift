@@ -7,11 +7,16 @@
 //
 
 import UIKit
+import Parse
 
 class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        var testObject: PFObject = PFObject(className: "test")
+        testObject["foo"] = "bar"
+        testObject.saveInBackground()
     }
 
     override func didReceiveMemoryWarning() {
