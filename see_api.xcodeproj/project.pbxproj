@@ -27,6 +27,10 @@
 		4A0831141AB2834900311C6E /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0831131AB2834900311C6E /* SystemConfiguration.framework */; };
 		4A0831161AB2835400311C6E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0831151AB2835400311C6E /* libz.dylib */; };
 		4A0831181AB2835A00311C6E /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0831171AB2835A00311C6E /* libsqlite3.dylib */; };
+		4A0831531AB5070800311C6E /* GridViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0831521AB5070800311C6E /* GridViewController.swift */; };
+		4A0831571AB50AA300311C6E /* UploadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0831561AB50AA300311C6E /* UploadViewController.swift */; };
+		4A0831591AB5117F00311C6E /* UIUtilFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0831581AB5117F00311C6E /* UIUtilFunctions.swift */; };
+		4A08315B1AB549BC00311C6E /* photoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A08315A1AB549BC00311C6E /* photoCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +68,10 @@
 		4A0831131AB2834900311C6E /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		4A0831151AB2835400311C6E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		4A0831171AB2835A00311C6E /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		4A0831521AB5070800311C6E /* GridViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GridViewController.swift; sourceTree = "<group>"; };
+		4A0831561AB50AA300311C6E /* UploadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadViewController.swift; sourceTree = "<group>"; };
+		4A0831581AB5117F00311C6E /* UIUtilFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIUtilFunctions.swift; sourceTree = "<group>"; };
+		4A08315A1AB549BC00311C6E /* photoCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = photoCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,6 +131,10 @@
 				4A0830DC1AB27CC900311C6E /* AppDelegate.swift */,
 				4A0830DE1AB27CC900311C6E /* MainViewController.swift */,
 				4A0830E01AB27CCA00311C6E /* Main.storyboard */,
+				4A0831561AB50AA300311C6E /* UploadViewController.swift */,
+				4A0831581AB5117F00311C6E /* UIUtilFunctions.swift */,
+				4A0831521AB5070800311C6E /* GridViewController.swift */,
+				4A08315A1AB549BC00311C6E /* photoCell.swift */,
 				4A0830FC1AB27F0F00311C6E /* InAppPurchaseController.swift */,
 				4A0830E31AB27CCA00311C6E /* Images.xcassets */,
 				4A0830E51AB27CCA00311C6E /* LaunchScreen.xib */,
@@ -283,9 +295,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A0831531AB5070800311C6E /* GridViewController.swift in Sources */,
+				4A08315B1AB549BC00311C6E /* photoCell.swift in Sources */,
+				4A0831571AB50AA300311C6E /* UploadViewController.swift in Sources */,
 				4A0830FD1AB27F0F00311C6E /* InAppPurchaseController.swift in Sources */,
 				4A0830DF1AB27CCA00311C6E /* MainViewController.swift in Sources */,
 				4A0830DD1AB27CC900311C6E /* AppDelegate.swift in Sources */,
+				4A0831591AB5117F00311C6E /* UIUtilFunctions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -485,6 +501,7 @@
 				4A0830F81AB27CCA00311C6E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4A0830F91AB27CCA00311C6E /* Build configuration list for PBXNativeTarget "see_apiTests" */ = {
 			isa = XCConfigurationList;
@@ -493,6 +510,7 @@
 				4A0830FB1AB27CCA00311C6E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

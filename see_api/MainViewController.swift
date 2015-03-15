@@ -13,10 +13,10 @@ class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        var testObject: PFObject = PFObject(className: "test")
-        testObject["foo"] = "bar"
-        testObject.saveInBackground()
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        self.navigationController?.navigationBarHidden = true
     }
 
     override func didReceiveMemoryWarning() {

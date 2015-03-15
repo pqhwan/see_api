@@ -24,6 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             clientKey: "VLKU0fFQw7mZtA7HwC863pwB7gnnf1X9IVz87GRA")
         
         PFAnalytics.trackAppOpenedWithLaunchOptions(launchOptions)
+        PFUser.enableAutomaticUser()
        
         // set public read access
         let defaultACL = PFACL();
