@@ -1,5 +1,4 @@
 # see_api
-##### April: Feel free to add whatever you find out (or any questions or concerns) to this readme!
 ---
 flat-api app for testing technical solutions for see.
 
@@ -16,9 +15,11 @@ flat-api app for testing technical solutions for see.
 ### [IN-APP PURCHASE]
 ---
 ##### Updates & todos
-+ Refer to Parse doc on iOS SDK
-+ let's see it work on a page
-+ is there a way to test this api without involving actual money?
++ [Setup and test in-app purchases](https://developer.apple.com/library/ios/technotes/tn2259/_index.html)
+ - Developer license agreement + contract/tax/banking info
+ - Register an app ID then create, download, and install a Mac Development Certificate using this ID
+ - iTunes Connect allows you to create test user accounts to test in-app purchases--without using real money
++ [In-app purchases in Parse](https://parse.com/docs/ios_guide#iap/iOS)
 
 ### [CLOSING VOTE & ANNOUNCING WINNER]
 ---
