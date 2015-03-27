@@ -42,9 +42,10 @@ class UploadViewController: UIViewController, UIImagePickerControllerDelegate, U
         let imageFile = PFFile(name:"image.png", data:imageData)
         
         var userPhoto = PFObject(className: "Submission")
-        userPhoto["imageFile"] = imageFile
-        userPhoto["text"] = textView.text
-        userPhoto["user"] = PFUser.currentUser()
+        userPhoto["image"] = imageFile
+        userPhoto["description"] = textView.text
+        userPhoto["userId"] = PFUser.currentUser().objectId
+        //userPhoto["competitionId"]
         
         userPhoto.saveInBackgroundWithBlock({
             (success: Bool!, error: NSError!) in
@@ -52,7 +53,6 @@ class UploadViewController: UIViewController, UIImagePickerControllerDelegate, U
                 println( (error.userInfo?["error"] as NSString) )
             } else {
                 println("saved! check data browser")
-                
             }
         })
     }

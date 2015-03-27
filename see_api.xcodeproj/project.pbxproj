@@ -31,6 +31,9 @@
 		4A0831571AB50AA300311C6E /* UploadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0831561AB50AA300311C6E /* UploadViewController.swift */; };
 		4A0831591AB5117F00311C6E /* UIUtilFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0831581AB5117F00311C6E /* UIUtilFunctions.swift */; };
 		4A08315B1AB549BC00311C6E /* photoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A08315A1AB549BC00311C6E /* photoCell.swift */; };
+		4A9C8CA91AC34CD4009D6800 /* GalleryUpdateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A9C8CA81AC34CD4009D6800 /* GalleryUpdateViewController.swift */; };
+		4AD3409D1AB67AA60079A575 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AD3409C1AB67AA60079A575 /* LoginViewController.swift */; };
+		4ADFDE971AB8F569008EA6E1 /* LikeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADFDE961AB8F569008EA6E1 /* LikeViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +75,9 @@
 		4A0831561AB50AA300311C6E /* UploadViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadViewController.swift; sourceTree = "<group>"; };
 		4A0831581AB5117F00311C6E /* UIUtilFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIUtilFunctions.swift; sourceTree = "<group>"; };
 		4A08315A1AB549BC00311C6E /* photoCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = photoCell.swift; sourceTree = "<group>"; };
+		4A9C8CA81AC34CD4009D6800 /* GalleryUpdateViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GalleryUpdateViewController.swift; sourceTree = "<group>"; };
+		4AD3409C1AB67AA60079A575 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
+		4ADFDE961AB8F569008EA6E1 /* LikeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LikeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +137,9 @@
 				4A0830DC1AB27CC900311C6E /* AppDelegate.swift */,
 				4A0830DE1AB27CC900311C6E /* MainViewController.swift */,
 				4A0830E01AB27CCA00311C6E /* Main.storyboard */,
+				4A9C8CA81AC34CD4009D6800 /* GalleryUpdateViewController.swift */,
+				4ADFDE961AB8F569008EA6E1 /* LikeViewController.swift */,
+				4AD3409C1AB67AA60079A575 /* LoginViewController.swift */,
 				4A0831561AB50AA300311C6E /* UploadViewController.swift */,
 				4A0831581AB5117F00311C6E /* UIUtilFunctions.swift */,
 				4A0831521AB5070800311C6E /* GridViewController.swift */,
@@ -297,8 +306,11 @@
 			files = (
 				4A0831531AB5070800311C6E /* GridViewController.swift in Sources */,
 				4A08315B1AB549BC00311C6E /* photoCell.swift in Sources */,
+				4A9C8CA91AC34CD4009D6800 /* GalleryUpdateViewController.swift in Sources */,
+				4ADFDE971AB8F569008EA6E1 /* LikeViewController.swift in Sources */,
 				4A0831571AB50AA300311C6E /* UploadViewController.swift in Sources */,
 				4A0830FD1AB27F0F00311C6E /* InAppPurchaseController.swift in Sources */,
+				4AD3409D1AB67AA60079A575 /* LoginViewController.swift in Sources */,
 				4A0830DF1AB27CCA00311C6E /* MainViewController.swift in Sources */,
 				4A0830DD1AB27CC900311C6E /* AppDelegate.swift in Sources */,
 				4A0831591AB5117F00311C6E /* UIUtilFunctions.swift in Sources */,

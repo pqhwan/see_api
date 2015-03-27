@@ -122,3 +122,8 @@ flat-api app for testing technical solutions for see.
 + What information do we need from users?
 	+ phone number: if we can pay through venmo to the user's phone number, they will get a text message.
 	+ email: not sure if we actually need this.
+
+
+### [SYSTEM-INITIATED TERMINATION, ETC.]
+---
+##### Different states
