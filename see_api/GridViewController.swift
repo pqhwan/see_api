@@ -15,10 +15,20 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
   @IBOutlet weak var collectionView: UICollectionView!
   
   let reuseIdentifier = "photoCell"
-  var photos = [UIImage]()
+  var photos = [PhotoObject]()
   var competition: PFObject! = nil
   var gallery: PFObject! = nil
   
+  class PhotoObject {
+    var parseObject: PFObject!
+    var image: UIImage!
+    let index: Int!
+    
+    init(parseObject: PFObject!, image: UIImage!, index: Int!){
+      self.parseObject = parseObject
+      self.image = image
+    }
+  }
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -26,76 +36,155 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     // assume this was given
     let galleryName = "providence_0"
-   
+    
     // chain 0 -- get locally stored gallery, make sure it is good, and use it to get latest local competition
     let localGalleryQuery = PFQuery(className:"Gallery_local").fromLocalDatastore()
     localGalleryQuery.whereKey("name", equalTo: galleryName)
-    localGalleryQuery.getFirstObjectInBackground().continueWithSuccessBlock({
+    localGalleryQuery.getFirstObjectInBackground().continueWithBlock({
       (task: BFTask!) -> AnyObject! in
-     
-      let localGallery = task.result as PFObject!
-      if localGallery == nil {
-        return BFTask(error: NSError(domain: "no local copy of gallery found", code: -1, userInfo: nil))
-      }
-      let latestCompetitionId = localGallery["latestCompetition"] as String!
-      if latestCompetitionId == nil {
-        return BFTask(error: NSError(domain: "local copy of gallery has no competition", code: -1, userInfo: nil))
-      }
-      
-      println("local gallery found")
-      
-      self.gallery = localGallery
-   
-      let galleryId = localGallery["galleryId"] as String!
-      let localLatestCompetitionQuery = PFQuery(className: "Competition_local").fromLocalDatastore()
-      localLatestCompetitionQuery.whereKey("galleryId", equalTo: galleryId)
-      localLatestCompetitionQuery.addDescendingOrder("endDate")
-      return localLatestCompetitionQuery.getFirstObjectInBackground()
+      println("local gallery query called")
+      return self.getLocalLatestCompetitionIfLocalGalleryFound(task)
     }).continueWithBlock({
       (task: BFTask!) -> AnyObject! in
-     
-      let localLatestCompetition = task.result as PFObject!
-      if localLatestCompetition == nil {
-        println("no local competition stored")
-      }
-      
-      self.competition = localLatestCompetition
-      
-      //let localLatestCompetitionId = localLatestCompetition["competitionId"] as String!
-      let remoteLatestCompetitionId = self.gallery["latestCompetition"] as String!
-      
-      if localLatestCompetition == nil || localLatestCompetition["competitionId"] as String! != remoteLatestCompetitionId{
-        println("there's new competition to be downloaded -- calling prepareForNewCompetitionAsync")
-        return self.prepareForNewCompetitionAsync(remoteLatestCompetitionId)
-      } else {
-        return BFTask(result: localLatestCompetition)
-      }
-    }).continueWithSuccessBlock({
+      println("local latest competition query called")
+      return self.setLocalLatestCompetitionIfLocalLatestCompetitionFound(task)
+    }).continueWithBlock({
       (task: BFTask!) -> AnyObject! in
-      self.competition = task.result as PFObject!
+      println("local latest competition set")
+      return self.getLocalSubmissionsIfLocalLatestCompetitionSet(task)
+    }).continueWithBlock({
+      (task: BFTask!) -> AnyObject! in
+      println("local submissions query called")
       
-      if (self.competition["maintained"] as Bool) {
-        // update list
+      // this is where we load locally stored submissions
+      let localSubmissions = task.result as [PFObject]!
+      for var index = 0; index < localSubmissions.count; index++ {
+        let localSubmission = localSubmissions[index]
+        let photoObject = PhotoObject(parseObject: localSubmission, image: nil, index: index)
+        self.photos.append(photoObject)
         
-      } else {
-        // initiate list
-        // download submissions
+        // retrieve photos for these from disk and, in callback, set to photoObject.image and reloadData
+       
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
       }
       
-      return BFTask(result: nil)
+      // call maintainSubmissionList
+      // will make async requests for image data and will add them to self.photos when done
+      // return self.displayLocalSubmissionsAndUpdateSubmissionsListIfLocalSubmissionsFound(task)
+    }).continueWithBlock({
+      (task: BFTask!) -> AnyObject! in
+      // locally stored submissions have been dug up and their images have been requested for
+      return self.updateSubmissionList()
     }).continueWithBlock({
       (task: BFTask!) -> AnyObject! in
       
       if task.error != nil {
+        println("error found on gridview update")
         println(task.error)
       }
+      
+      return nil
+    })
+  }
+  
+  // asynchronously update submissions for this competition
+  func updateSubmissionList() -> BFTask! {
+    let taskSource = BFTaskCompletionSource()
+    
+    let submissionQuery = PFQuery(className: "Submission")
+    submissionQuery.whereKey("competitionId", equalTo: self.competition["competitionId"])
+    submissionQuery.addDescendingOrder("createdAt")
+   
+    // find the latest submission on disk
+    // TODO we can replace this by loading local copies first and then chaining this call to it so that
+    // this information is available on self.photos
+    let latestDownloadedSubmisionQuery = PFQuery(className: "Submission_local").fromLocalDatastore()
+    latestDownloadedSubmisionQuery.whereKey("competitionId", equalTo: self.competition["competitionId"])
+    latestDownloadedSubmisionQuery.addDescendingOrder("submissionCreatedAt")
+    latestDownloadedSubmisionQuery.getFirstObjectInBackground().continueWithBlock({
+      (task: BFTask!) -> AnyObject! in
+      
+      let latestDownloadedSubmission = task.result as PFObject!
+      if latestDownloadedSubmission != nil {
+        submissionQuery.whereKey("createdAt", greaterThan: (latestDownloadedSubmission["submissionCreatedAt"] as NSDate))
+      }
+      
+      // get me everything more recent than this
+      return submissionQuery.findObjectsInBackground()
+    }).continueWithSuccessBlock({
+      (task: BFTask!) -> AnyObject! in
+     
+      // got new submissions -- gotta display them and store them on disk for next time
+      let submissions = task.result as [PFObject]!
+      
+      for var index = 0; index < submissions.count ; index++ {
+        let submission = submissions[index]
+        // create local copies of submissions
+        let localSubmission = PFObject(className: "Submission_local")
+        localSubmission["submissionId"] = submission.objectId
+        localSubmission["submissionCreatedAt"] = submission.createdAt
+        localSubmission["competitionId"] = submission["competitionId"] as String!
+        localSubmission["userId"] = PFUser.currentUser().objectId
+        localSubmission["description"] = submission["description"] as String!
+        
+        // TODO we need to take into account how many submissions we have downloaded already
+        let photoObject = PhotoObject(parseObject: localSubmission, image: nil, index: index)
+        self.photos.append(photoObject)
+        
+        // retreive image file with callback
+        let imageFile = submission["image"] as PFFile!
+        imageFile.getDataInBackground().continueWithSuccessBlock({
+          (task: BFTask!) -> AnyObject! in
+          println("image found")
+          // data now available
+          let imageData = task.result as NSData!
+          let image = UIImage(data: imageData)!
+          photoObject.image = image
+          dispatch_async(dispatch_get_main_queue(), {
+            () -> Void in
+            
+            println("index for this object is \(index)")
+            //self.collectionView.reloadItemsAtIndexPaths(<#indexPaths: [AnyObject]#>)
+            self.collectionView.reloadData()
+          })
+          // also, store image data on disk (with subsequent callback)
+          return nil
+        })
+      }
+      
+      //return PFObject.pinAllInBackground(nil)
+      taskSource.setResult(nil)
+      return BFTask(result: nil)
+    }).continueWithSuccessBlock({
+      (task: BFTask!) -> AnyObject! in
+      
       return nil
     })
     
-   
+    return BFTask(result: nil)
   }
-
+  
   func prepareForNewCompetitionAsync(newCompetition: String!) -> BFTask! {
     // empty photo cache & store new competition_local (return competition_local task)
     // these can be parallel
@@ -124,7 +213,7 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
         return nil
       })
     }
-   
+    
     // store the new competition object in local datastore
     let competitionQuery = PFQuery(className: "Competition")
     competitionQuery.getObjectInBackgroundWithId(newCompetition).continueWithSuccessBlock({
@@ -153,18 +242,88 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
     })
     return taskSource.task
   }
+ 
+ 
+  /* UPDATE CHAIN FUNCTIONS */
   
+  func getLocalLatestCompetitionIfLocalGalleryFound(task: BFTask!) -> BFTask! {
+    if task.error != nil{
+      return task
+    }
+    
+    let localGallery = task.result as PFObject!
+    if localGallery == nil {
+      return BFTask(error: NSError(domain: "no local copy of gallery found", code: -1, userInfo: nil))
+    }
+    let latestCompetitionId = localGallery["latestCompetition"] as String!
+    if latestCompetitionId == nil {
+      return BFTask(error: NSError(domain: "local copy of gallery has no competition", code: -1, userInfo: nil))
+    }
+    println("local gallery found")
+    
+    self.gallery = localGallery
+    
+    let galleryId = localGallery["galleryId"] as String!
+    let localLatestCompetitionQuery = PFQuery(className: "Competition_local").fromLocalDatastore()
+    localLatestCompetitionQuery.whereKey("galleryId", equalTo: galleryId)
+    localLatestCompetitionQuery.addDescendingOrder("endDate")
+    return localLatestCompetitionQuery.getFirstObjectInBackground()
+  }
+  
+  func setLocalLatestCompetitionIfLocalLatestCompetitionFound(task: BFTask! ) -> BFTask! {
+    if task.error != nil {
+      return task
+    }
+    
+    let localLatestCompetition = task.result as PFObject!
+    if localLatestCompetition == nil {
+      println("no local competition stored")
+    } else {
+      println("local copy of competition found")
+    }
+    self.competition = localLatestCompetition
+    
+    let remoteLatestCompetitionId = self.gallery["latestCompetition"] as String!
+    if localLatestCompetition == nil || localLatestCompetition["competitionId"] as String! != remoteLatestCompetitionId{
+      println("there's new competition to be downloaded -- calling prepareForNewCompetitionAsync")
+      return self.prepareForNewCompetitionAsync(remoteLatestCompetitionId)
+    } else {
+      println("local latest competition is actually the latest")
+      return BFTask(result: localLatestCompetition)
+    }
+  }
+  
+  func getLocalSubmissionsIfLocalLatestCompetitionSet(task: BFTask!) -> BFTask! {
+    if task.error != nil {
+      return task
+    }
+    
+    self.competition = task.result as PFObject!
+    // retrieve submissions stored in local data store
+    let localSubmissionsQuery = PFQuery(className: "Submission_local").fromLocalDatastore()
+    localSubmissionsQuery.whereKey("competitionId", greaterThan: self.competition["competitionId"])
+    localSubmissionsQuery.addDescendingOrder("submissionCreatedAt")
+    return localSubmissionsQuery.findObjectsInBackground()
+  }
+  
+  func displayLocalSubmissionsAndUpdateSubmissionsListIfLocalSubmissionsFound(task: BFTask!) -> BFTask! {
+    return nil
+  }
+ 
+  
+  
+  /* COLLECTION VIEW DELEGATE & DATASOURCE PROTOCOL FUNCTIONS */
   
   func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-    //println("number of items requested (currently \(photos.count))")
+    println("collectionView numberOfItemsInSection called")
     return photos.count
   }
   
   func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+    println("collectionView cellForItemAtIndexPath called")
     let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as photoCell
-    cell.backgroundColor = UIColor.blackColor()
-    cell.imageView.image = self.photos[indexPath.row]
-    // Configure the cell
+    let photoObject = self.photos[indexPath.row]
+    cell.imageView.image = photoObject.image
     return cell
   }
   
@@ -172,385 +331,3 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
     
   }
 }
- 
-  /*
-  func updateCompetitionForGalleryAsync(name: String!) -> BFTask! {
-    println("gallery update called for gallery \(name)")
-    
-    let taskSource = BFTaskCompletionSource()
-    
-    let localGalleryQuery = PFQuery(className: "Gallery_local")
-    localGalleryQuery.whereKey("name", equalTo: name)
-    localGalleryQuery.getFirstObjectInBackground().continueWithBlock({
-      (task: BFTask!) -> AnyObject! in
-      let localGallery = task.result as PFObject!
-      if localGallery == nil {
-        taskSource.setError(NSError(domain: "no local gallery found", code: -1, userInfo: nil))
-        return nil
-      }
-      self.gallery = localGallery
-      
-      //local gallery available from here on
-      let localLatestCompetitionQuery = PFQuery(className: "Competition_local").fromLocalDatastore()
-      localLatestCompetitionQuery.whereKey("galleryId", equalTo: localGallery["galleryId"])
-      // FIXME sorting by endDate might not always give the latest competition
-      localLatestCompetitionQuery.orderByDescending("endDate")
-      
-      return localLatestCompetitionQuery.getFirstObjectInBackground().continueWithBlock({
-        (task: BFTask!) -> AnyObject! in
-        
-        let localLatestCompetition = task.result as PFObject!
-        if localLatestCompetition == nil {
-          // first download of competition
-          println("first download of competition")
-          // add new competition 
-          self.competition = self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-          return nil
-        }
-        
-        if localLatestCompetition["competitionId"] as String != localGallery["latestCompetition"] as String {
-          println("latest local competition is outdated")
-          if localLatestCompetition["active"] as Bool {
-            println("user missed grace period of previous competition")
-            self.competition = self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-            // TODO delete submission cache
-            return nil
-          } else {
-            println("user has seen grace period of previous competition")
-            self.competition = self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-            // TODO delete grace period cache
-            return nil
-          }
-        }
-        return nil
-      })
-    })
-    return taskSource.task
-  }*/
-  
-  
-  
- 
-  /*
-  func updateCompetitionForGallery(name: String!){
-    println("gallery update called for gallery \(name)")
-    
-    let localGalleryQuery = PFQuery(className: "Gallery_local").fromLocalDatastore()
-    localGalleryQuery.whereKey("name", equalTo: name)
-    localGalleryQuery.getFirstObjectInBackground().continueWithBlock({
-      (task: BFTask!) -> AnyObject! in
-      
-      let localGallery = task.result as PFObject!
-      self.gallery = localGallery
-      
-      if localGallery == nil {
-        return BFTask(error: NSError(domain: "no local gallery found", code: -1, userInfo: nil))
-      }
-      
-      // local gallery available from here on
-      
-      let localLatestCompetitionQuery = PFQuery(className: "Competition_local").fromLocalDatastore()
-      localLatestCompetitionQuery.whereKey("galleryId",
-        equalTo: localGallery["galleryId"])
-      // FIXME sorting by endDate might not always give the latest competition
-      localLatestCompetitionQuery.orderByDescending("endDate")
-      
-      // get locally stored latest competition and see if anything has changed, and if not, update photo cache
-      // returns BFTask to indicate success or failure
-      return localLatestCompetitionQuery.getFirstObjectInBackground().continueWithBlock({
-        (task: BFTask!) -> AnyObject! in
-        
-        let localLatestCompetition = task.result as PFObject!
-        self.competition = localLatestCompetition
-        
-        if localLatestCompetition == nil {
-          // first download of competition
-          println("first download of competition")
-          self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-          // TODO start submissions cache
-          return nil
-        }
-        
-        if localLatestCompetition["competitionId"] as String != localGallery["latestCompetition"] as String {
-          // was local one in active state?
-          println("latest local competition is outdated")
-          if localLatestCompetition["active"] as Bool {
-            println("user missed grace period of previous competition")
-            // TODO delete submission cache
-          } else {
-            println("user has seen grace period of previous competition")
-            // TODO delete grace period cache
-          }
-          
-          if localGallery["competitionActive"] as Bool {
-            // new competition is active -- start a submissiosn cache
-            println("new competition is active")
-            self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-            // TODO start submission cache
-            return nil
-          } else {
-            // new competition is inactive -- start a grace period cache
-            println("new competition is already in grace period")
-            self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-            // TODO start grace period cache
-            return nil
-          }
-        } else {
-          println("latest local competition is in fact the latest")
-          // latest competition is the same -- has competition gone into grace period?
-          let localStatus = localLatestCompetition["active"] as Bool
-          let authStatus = localGallery["competitionActive"] as Bool // authoritative
-          
-          if localStatus {
-            // local is active
-            if authStatus {
-              println("we're still active -- any updates on list of submissions?")
-              // TODO update submission cache
-              return nil
-            } else {
-              println("competition went into grace period")
-              // delete submission cache and start grace period cache
-              localLatestCompetition["active"] = false
-              localLatestCompetition.pinInBackground()
-              // TODO delete submission cache
-              // TODO start submissions cache
-              return nil
-            }
-          } else {
-            // both local and remote copy in grace period
-            println("latest compeitition in grace period like last time we checked")
-          }
-        }
-        return nil
-      })
-    })
-  }*/
-  
-  
-  // active cache management
-  /*
-  
-  func initActiveCacheForCompetitionAsync(id: String!) -> BFTask! {
-  return nil
-  }
-  
-  func updateActiveCacheForCompetitionAsync(id: String!) -> BFTask! {
-  return nil
-  }
-  
-  func deleteActiveCacheForCompetitionAsync(id: String!) -> BFTask! {
-  return nil
-  }
-  
-  func initGraceCacheForCompetitionAsync(id: String!) -> BFTask! {
-  return nil
-  }
-  
-  func deleteGraceCacheForCompetitionAsync(id: String!) -> BFTask! {
-  return nil
-  }*/
-  
-  
-  
-        /*
-        if localLatestCompetition["competitionId"] as String != localGallery["latestCompetition"] as String {
-          // was local one in active state?
-          println("latest local competition is outdated")
-          var resultArr = [AnyObject]()
-          if localLatestCompetition["active"] as Bool {
-            println("user missed grace period of previous competition")
-            // TODO delete submission cache
-            resultArr.append(self.DEL_ACTIVE_CACHE)
-          } else {
-            println("user has seen grace period of previous competition")
-            // TODO delete grace period cache
-            resultArr.append(self.DEL_GRACE_CACHE)
-          }
-          
-          if localGallery["competitionActive"] as Bool {
-            // new competition is active -- start a submissiosn cache
-            println("new competition is active")
-            self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-            // start submission cache
-            resultArr.append(self.INIT_ACTIVE_CACHE)
-          } else {
-            // new competition is inactive -- start a grace period cache
-            println("new competition is already in grace period")
-            self.addNewCompetitionForGallery(name, competitionId: localGallery["latestCompetition"] as String!)
-            // TODO start grace period cache
-            resultArr.append(self.INIT_GRACE_CACHE)
-          }
-          taskSource.setResult(resultArr)
-          return nil
-        } else {
-          println("latest local competition is in fact the latest")
-          // latest competition is the same -- has competition gone into grace period?
-          let localStatus = localLatestCompetition["active"] as Bool
-          let authStatus = localGallery["competitionActive"] as Bool // authoritative
-          
-          if localStatus {
-            // local is active
-            if authStatus {
-              println("we're still active -- any updates on list of submissions?")
-              // TODO update submission cache
-              taskSource.setResult([self.UPDATE_ACTIVE_CACHE])
-              return nil
-            } else {
-              println("competition went into grace period")
-              // delete submission cache and start grace period cache
-              localLatestCompetition["active"] = false
-              localLatestCompetition.pinInBackground()
-              // TODO delete submission cache
-              // start submissions cache
-              taskSource.setResult([self.INIT_ACTIVE_CACHE])
-              return nil
-            }
-          } else {
-            // both local and remote copy in grace period
-            println("latest compeitition in grace period like last time we checked")
-            taskSource.setResult(nil)
-            return nil
-          }
-        } */
-      /*
-      if task.error != nil {
-        println("\(task.error)")
-        return nil
-      }
-      if task.result == nil {
-        println("nothing to do here")
-        return nil
-      }
-      
-      var previousTask: BFTask! = nil
-      let competitionId = self.competition["competitionId"] as String!
-      
-      for t in task.result as [Int]! {
-        switch t {
-        case self.INIT_ACTIVE_CACHE:
-          println("init active cache")
-          if previousTask == nil {
-            previousTask = self.initActiveCacheForCompetitionAsync(competitionId)
-          } else {
-            previousTask = previousTask.continueWithBlock({
-              (task: BFTask!) -> AnyObject! in
-              return self.initActiveCacheForCompetitionAsync(competitionId)
-            })
-          }
-        case self.INIT_GRACE_CACHE:
-          println("init grace cache")
-          if previousTask == nil {
-            previousTask = self.initGraceCacheForCompetitionAsync(competitionId)
-          } else {
-            previousTask = previousTask.continueWithBlock({
-              (task: BFTask!) -> AnyObject! in
-              return self.initGraceCacheForCompetitionAsync(competitionId)
-            })
-          }
-        case self.UPDATE_ACTIVE_CACHE:
-          println("update active cache")
-          if previousTask == nil {
-            previousTask = self.updateActiveCacheForCompetitionAsync(competitionId)
-          } else {
-            previousTask = previousTask.continueWithBlock({
-              (task: BFTask!) -> AnyObject! in
-              return self.updateActiveCacheForCompetitionAsync(competitionId)
-            })
-          }
-        case self.DEL_ACTIVE_CACHE:
-          println("delete active cache")
-          if previousTask == nil {
-            previousTask = self.deleteActiveCacheForCompetitionAsync(competitionId)
-          } else {
-            previousTask = previousTask.continueWithBlock({
-              (task: BFTask!) -> AnyObject! in
-              return self.deleteActiveCacheForCompetitionAsync(competitionId)
-            })
-          }
-        case self.DEL_GRACE_CACHE:
-          println("delete grace cache")
-          if previousTask == nil {
-            previousTask = self.deleteGraceCacheForCompetitionAsync(competitionId)
-          } else {
-            previousTask = previousTask.continueWithBlock({
-              (task: BFTask!) -> AnyObject! in
-              return self.deleteGraceCacheForCompetitionAsync(competitionId)
-            })
-          }
-        default:
-          println("unexpected")
-        }
-      }
-      */
-  // state management
-  /*
-  func addNewCompetitionForGallery(name: String!, competitionId: String!) -> BFTask! {
-    let taskSource = BFTaskCompletionSource()
-    
-    let query = PFQuery(className: "Competition")
-    query.getObjectInBackgroundWithId(competitionId).continueWithBlock({
-      (task: BFTask!) -> AnyObject! in
-      
-      let competition = task.result as PFObject!
-      
-      // TODO error checking (might be revealing point for some serious edge cases near competition transition point)
-      if competition == nil {
-        // competiiton not found
-      }
-      
-      // check if there's a copy of the same competition
-      // this wouldn't happen though
-      let countRedundants = PFQuery(className: "Competition_local").fromLocalDatastore()
-      countRedundants.whereKey("competitionId", equalTo: competition.objectId)
-      if ( countRedundants.countObjects() > 0 ) {
-        println("REDUNDANT COPY OF COMPETITION FOUND")
-        return nil
-      }
-      
-      let newCompetition = PFObject(className:"Competition_local")
-      newCompetition["competitionId"] = competition.objectId
-      newCompetition["galleryId"] = competition["gallery"] as String
-      newCompetition["active"] = competition["active"] as Bool
-      newCompetition["endDate"] = competition["endDate"] as NSDate
-      newCompetition["maintained"] = false
-      
-      newCompetition.pinInBackground().continueWithBlock({
-        (task: BFTask!) -> AnyObject! in
-        let newCompetition = task.result as PFObject!
-        if newCompetition == nil {
-          taskSource.setError(NSError(domain: "local save failed", code: -1, userInfo: nil))
-        } else {
-          taskSource.setResult(nil)
-        }
-        return nil
-      })
-      return nil
-    })
-    
-    return taskSource.task
-  } */
-
-
-
-
-
-
-/*
-let batchDownloadQuery = PFQuery(className: "Submissions")
-batchDownloadQuery.findObjectsInBackground().continueWithBlock({
-(task: BFTask!) -> AnyObject! in
-let submissions = task.result as [PFObject]!
-var tasks = [BFTask]()
-
-println("\(submissions.count) photos retrieved from the server")
-
-for submission in submissions {
-let uploader = submission["user"] as PFUser
-let image = submission["image"] as PFFile
-let desc = submission["description"] as String
-
-tasks.append(image.getDataInBackground())
-}
-
-return nil
-}) */

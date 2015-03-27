@@ -21,7 +21,41 @@ class MainViewController: UIViewController {
     self.navigationController?.navigationBarHidden = true
     self.globalUpdate()
     self.galleriesAndCompetitions(false)
-    //self.resetGalleriesCompetitions()
+    
+    var path = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as String
+    var dirPath = path.stringByAppendingPathComponent("images/\()")
+    
+    /*
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    
+    NSString *imagePath =[documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.png",@"cached"]];
+    
+    NSLog((@"pre writing to file"));
+    if (![imageData writeToFile:imagePath atomically:NO])
+    
+    
+    var paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as String
+    var dirPath = paths.stringByAppendingPathComponent("images/\(id)" )
+    var imagePath = paths.stringByAppendingPathComponent("images/\(id)/logo.jpg" )
+    var checkImage = NSFileManager.defaultManager()
+    
+    if (checkImage.fileExistsAtPath(imagePath)) {
+    let getImage = UIImage(contentsOfFile: imagePath)
+    self.image?.image = getImage
+    } else {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) {
+    checkImage.createDirectoryAtPath(dirPath, withIntermediateDirectories: true, attributes: nil, error: nil)
+    let getImage =  UIImage(data: NSData(contentsOfURL: NSURL(string: remoteImage)))
+    UIImageJPEGRepresentation(getImage, 100).writeToFile(imagePath, atomically: true)
+    
+    dispatch_async(dispatch_get_main_queue()) {
+    self.image?.image = getImage
+    return
+    }
+    }
+    }
+    */
    
  
   }
@@ -177,44 +211,3 @@ class MainViewController: UIViewController {
     return taskSource.task
   }
 }
-
-/*
-println("")
-self.testAsync().continueWithBlock({
-(task: BFTask!) -> AnyObject! in
-println("async call done")
-})
-println("")
-self.testAsync().continueWithBlock({
-(task: BFTask!) -> AnyObject! in
-
-return self.testAsync()
-}).continueWithBlock({
-(task: BFTask!) -> AnyObject! in
-
-return self.testAsync()
-}) */
-
-/*
-var previousTask: BFTask! = nil;
-// will execute testAsync 3 times (serially)
-for i in 1...3 {
-if previousTask == nil{
-previousTask = self.testAsync()
-} else {
-previousTask = previousTask.continueWithBlock({
-(task: BFTask!) -> AnyObject! in
-return self.testAsync()
-})
-}
-}
-
-previousTask.continueWithBlock({
-(task: BFTask!) -> AnyObject! in
-if task.error != nil {
-println("task error \(task.error)")
-return nil
-}
-println("task result: \(task.result)")
-return nil
-})*/

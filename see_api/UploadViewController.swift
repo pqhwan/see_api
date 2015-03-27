@@ -25,6 +25,7 @@ class UploadViewController: UIViewController, UIImagePickerControllerDelegate, U
     // defaults
     let textViewDefaultPrompt: String! = "Write a few words..."
     let imageViewDefault: UIImage! = UIImage(named: "uploadPrompt")
+    let competitionId = "zmA2eALt2c"
    
     @IBAction func uploadButtonClicked(sender: UIButton!){
         // TODO check for correct input
@@ -45,7 +46,7 @@ class UploadViewController: UIViewController, UIImagePickerControllerDelegate, U
         userPhoto["image"] = imageFile
         userPhoto["description"] = textView.text
         userPhoto["userId"] = PFUser.currentUser().objectId
-        //userPhoto["competitionId"]
+        userPhoto["competitionId"] = self.competitionId
         
         userPhoto.saveInBackgroundWithBlock({
             (success: Bool!, error: NSError!) in
