@@ -224,7 +224,6 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
         // SET IMAGES TO PHOTOS
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
             let image = UIImage(contentsOfFile: imagePath)
-            println("photo found for \(atRow)")
             self.photos[atRow].image = image
             let indexPath = NSIndexPath(forRow: atRow, inSection: 0)
             
