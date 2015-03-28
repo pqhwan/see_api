@@ -15,16 +15,20 @@ class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-    }
-    
-    override func viewWillAppear(animated: Bool) {
-        self.navigationController?.navigationBarHidden = true
         self.galleriesAndCompetitionsAndSubmissions(true).continueWithBlock({
             (task: BFTask!) -> AnyObject! in
             self.globalUpdate()
             return nil
         })
-        
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        self.navigationController?.navigationBarHidden = true
+        self.galleriesAndCompetitionsAndSubmissions(false).continueWithBlock({
+            (task: BFTask!) -> AnyObject! in
+            self.globalUpdate()
+            return nil
+        })
     }
     
     override func didReceiveMemoryWarning() {

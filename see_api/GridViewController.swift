@@ -57,6 +57,7 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
             return self.updateLocalSubmissions(task)
         }).continueWithBlock({
             (task: BFTask!) -> AnyObject! in
+            println("updates done!")
             return nil
         })
     }
@@ -90,6 +91,8 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
                 (task: BFTask!) -> AnyObject! in
                 return nil
             })
+        } else {
+            println("no cache to be deleted")
         }
         
         // GET THE NEW COMPETITION OBJECT FROM SERVER
@@ -183,41 +186,55 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
         if manager.fileExistsAtPath(self.dirPath) == false {
             manager.createDirectoryAtPath(self.dirPath, withIntermediateDirectories: true, attributes: nil, error: nil)
         }
+        println("directory for this competition's images is \(self.dirPath)")
         
         // RETREIVE LOCALLY STORED SUBMISSIONS
         let localSubmissionsQuery = PFQuery(className: "Submission_local").fromLocalDatastore()
-        localSubmissionsQuery.whereKey("competitionId", greaterThan: self.competition["competitionId"])
+        localSubmissionsQuery.whereKey("competitionId", equalTo: self.competition["competitionId"])
         localSubmissionsQuery.addDescendingOrder("submissionCreatedAt")
         return localSubmissionsQuery.findObjectsInBackground()
     }
     
     // GIVEN THAT LOCAL SUBMISSIONS WERE RETRIEVED, DISPLAY THEM
     func displayLocalSubmissionsIfLocalSubmissionsFound(task: BFTask) -> BFTask{
-        println("display local submissions if local submissions are found")
         let localSubmissions = task.result as [PFObject]!
+        
+        println("display local submissions if local submissions are found")
+        println("number of submissions in local datastore :\(localSubmissions.count)")
+        
         for var index = 0; index < localSubmissions.count; index++ {
             // PUT THEM IN PHOTOS
+            println("iteration \(index)")
             let localSubmission = localSubmissions[index]
             let photoObject = PhotoObject(parseObject: localSubmission, image: nil, index: index)
             self.photos.append(photoObject)
+            dispatch_async(dispatch_get_main_queue(), {
+                self.collectionView.reloadData()
+            })
             
             // REQUEST FOR IMAGES FROM FILE SYSTEM
             let submissionId = localSubmission["submissionId"] as String!
             let imagePath = self.dirPath.stringByAppendingPathComponent("/\(submissionId).png")
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
-                // SET IMAGES TO PHOTOS
-                let image = UIImage(contentsOfFile: imagePath)
-                self.photos[index].image = image
-                let indexPath = NSIndexPath(forRow: index, inSection: 0)
-                
-                // CALL RELOAD ON CORRESPONDING CELLS
-                dispatch_async(dispatch_get_main_queue(), {
-                    self.collectionView.reloadItemsAtIndexPaths([indexPath])
-                })
-            })
+            self.retrieveImageLocallyAndDisplay(imagePath, atRow: index)
         }
         return BFTask(result: nil)
     }
+    
+    func retrieveImageLocallyAndDisplay(imagePath: String!, atRow: Int!){
+        // SET IMAGES TO PHOTOS
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), {
+            let image = UIImage(contentsOfFile: imagePath)
+            println("photo found for \(atRow)")
+            self.photos[atRow].image = image
+            let indexPath = NSIndexPath(forRow: atRow, inSection: 0)
+            
+            // CALL RELOAD ON CORRESPONDING CELLS
+            dispatch_async(dispatch_get_main_queue(), {
+                self.collectionView.reloadItemsAtIndexPaths([indexPath])
+            })
+        })
+    }
+    
     
     // RETRIEVE NEW SUBMISSIONS FROM SERVER AND DISPLAY THEM
     func updateLocalSubmissions(task: BFTask) -> BFTask! {
@@ -229,7 +246,8 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
         submissionQuery.whereKey("competitionId", equalTo: self.competition["competitionId"])
         submissionQuery.addDescendingOrder("createdAt")
         if self.photos.count > 0 {
-            let latestDownloadedSubmission = self.photos[ (self.photos.count - 1) ].parseObject
+            println("self photos count \(self.photos.count)")
+            let latestDownloadedSubmission = self.photos[0].parseObject
             submissionQuery.whereKey("createdAt", greaterThan: (latestDownloadedSubmission["submissionCreatedAt"] as NSDate))
         }
         
@@ -238,7 +256,10 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
             (task: BFTask!) -> AnyObject! in
             println("new submissions retrieved")
             let submissions = task.result as [PFObject]!
+            println("number of new submissions retrieved from server: \(submissions.count)")
             let baseIndex = self.photos.count
+            
+            var newLocalSubmissions = [PFObject]()
             
             // FOR EACH NEW SUBMISSION OBJECT
             for var index = 0; index < submissions.count ; index++ {
@@ -251,8 +272,12 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
                 localSubmission["competitionId"] = submission["competitionId"] as String!
                 localSubmission["userId"] = PFUser.currentUser().objectId
                 localSubmission["description"] = submission["description"] as String!
+                newLocalSubmissions.append(localSubmission)
                 let photoObject = PhotoObject(parseObject: localSubmission, image: nil, index: (baseIndex+index))
                 self.photos.append(photoObject)
+                dispatch_async(dispatch_get_main_queue(), {
+                    self.collectionView.reloadData()
+                })
                 
                 // REQUEST IMAGE FILE FROM SERVER
                 let imageFile = submission["image"] as PFFile!
@@ -277,7 +302,7 @@ class GridViewController: UIViewController, UICollectionViewDataSource, UICollec
                 })
             }
             self.competition["maintained"] = true
-            return PFObject.pinAllInBackground(nil)
+            return PFObject.pinAllInBackground(newLocalSubmissions)
         }).continueWithSuccessBlock({
             (task: BFTask!) -> AnyObject! in
             taskSource.setResult(nil)
