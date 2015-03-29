@@ -107,10 +107,12 @@ func printSubmissionLocal(object: PFObject) {
   let competitionId = object["competitionId"] as String!
   let userId = object["userId"] as String!
   let description = object["description"] as String!
+  let file = object["file"] as PFFile!
   
   println("competitionId: \(competitionId)")
   println("userId: \(userId)")
   println("description: \(description)")
+  println("file: \(file)")
 }
 
 
